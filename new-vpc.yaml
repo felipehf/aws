@@ -1,0 +1,203 @@
+#Criação da estrutura completa para realiza laboratórios durante a especialização em AWS
+Resources:
+
+# Criando o meu VPC
+  VPCCloudTreinamentos:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+      - Key: Name
+        Value: !Sub ${AWS::StackName}-VPC
+
+# Criando o internet Gateway  >>> NAO CONSEGUI USAR TAG PARA MUDAR O NOME DO IG PARA IG-CRUSO
+  igcurso:
+    Type: AWS::EC2::InternetGateway
+    DependsOn: VPCCloudTreinamentos
+
+# Conectando o IG com o VPC
+  NovoAttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPCCloudTreinamentos
+      InternetGatewayId: !Ref igcurso
+
+  # Criando  a Subnet Publica 01
+  SubnetPB01:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.1.0/24
+      VpcId: !Ref VPCCloudTreinamentos
+      AvailabilityZone: !Select [0, !GetAZs '']
+      Tags:
+      - Key: Name
+        Value: !Sub curso_public-01
+
+  # Criando  a Subnet Publica 02
+  SubnetPB02:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.2.0/24
+      VpcId: !Ref VPCCloudTreinamentos
+      AvailabilityZone: !Select [1, !GetAZs '']
+      Tags:
+      - Key: Name
+        Value: !Sub curso_public-02
+
+  # Criando  a Subnet Privada 01
+  SubnetPV01:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.3.0/24
+      VpcId: !Ref VPCCloudTreinamentos
+      AvailabilityZone: !Select [0, !GetAZs '']
+      Tags:
+      - Key: Name
+        Value: !Sub curso_privada-01
+
+  # Criando  a Subnet Privada 02
+  SubnetPV02:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.4.0/24
+      VpcId: !Ref VPCCloudTreinamentos
+      AvailabilityZone: !Select [1, !GetAZs '']
+      Tags:
+      - Key: Name
+        Value: !Sub curso_privada-02
+
+# Criando a Route table publica
+  PublicaRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPCCloudTreinamentos
+      Tags:
+      - Key: Name
+        Value: rt_curso_publica
+
+# Associando a tabela de rotas com a subnet publica
+  PublicaRouteTableAssociation01:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicaRouteTable
+      SubnetId: !Ref SubnetPB01
+
+# Associando a tabela de rotas com a subnet publica
+  PublicaRouteTableAssociation02:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicaRouteTable
+      SubnetId: !Ref SubnetPB02
+
+# Criando a Route publica conectando na route table publica e no NAT GW
+  PublicaRoute1:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicaRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref igcurso
+
+# Criando a Route table privada
+  PrivadaRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPCCloudTreinamentos
+      Tags:
+      - Key: Name
+        Value: rt_curso_privada
+
+# Associando a tabela de rotas com a subnet privada
+  PrivadaRouteTableAssociation01:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivadaRouteTable
+      SubnetId: !Ref SubnetPV01
+
+# Associando a tabela de rotas com a subnet privada
+  PrivadaRouteTableAssociation02:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivadaRouteTable
+      SubnetId: !Ref SubnetPV02
+
+# Criando uma ACL Publica com regras
+  PublicaAcL:
+    Type: AWS::EC2::NetworkAcl
+    Properties: 
+      VpcId: !Ref VPCCloudTreinamentos
+      Tags:
+      - Key: Name
+        Value: acl_publica
+  InboundRule:
+      Type: AWS::EC2::NetworkAclEntry
+      Properties:
+        NetworkAclId: !Ref PublicaAcL
+        RuleNumber: 100
+        Protocol: 6
+        RuleAction: allow
+        CidrBlock: 0.0.0.0/0
+        PortRange:
+          From: 22
+          To: 22      
+
+# Associando a minha ACL publica a minha subnet-publica-01
+  PublicAssociation01:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties: 
+      NetworkAclId: !Ref PublicaAcL
+      SubnetId: !Ref SubnetPB01
+
+# Associando a minha ACL publica a minha subnet-publica-02
+  PublicAssociation02:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties: 
+      NetworkAclId: !Ref PublicaAcL
+      SubnetId: !Ref SubnetPB02
+
+# Criando uma ACL Privada
+  PrivadaAcL:
+    Type: AWS::EC2::NetworkAcl
+    Properties: 
+      VpcId: !Ref VPCCloudTreinamentos
+      Tags:
+      - Key: Name
+        Value: acl_privada 
+
+# Associando a minha ACL publica a minha subnet-privada-01
+  PrivadaAssociation01:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties: 
+      NetworkAclId: !Ref PrivadaAcL
+      SubnetId: !Ref SubnetPV01
+
+# Associando a minha ACL publica a minha subnet-privada-02
+  PrivadaAssociation02:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties: 
+      NetworkAclId: !Ref PrivadaAcL
+      SubnetId: !Ref SubnetPV02
+
+# Criando as regras da minha ACL publica
+  Resources:
+    MyNACL:
+      Type: AWS::EC2::NetworkAcl
+      Properties:
+        VpcId: vpc-1122334455aabbccd
+        Tags:
+        - Key: Name
+          Value: NACLforSSHTraffic
+    InboundRule:
+      Type: AWS::EC2::NetworkAclEntry
+      Properties:
+        NetworkAclId:
+          Ref: MyNACL
+        RuleNumber: 100
+        Protocol: 6
+        RuleAction: allow
+        CidrBlock: 172.16.0.0/24
+        PortRange:
+          From: 22
+          To: 22
+    
