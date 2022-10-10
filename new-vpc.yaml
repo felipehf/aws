@@ -12,7 +12,7 @@ Resources:
       - Key: Name
         Value: !Sub ${AWS::StackName}-VPC
 
-# Criando o internet Gateway  >>> NAO CONSEGUI USAR TAG PARA MUDAR O NOME DO IG PARA IG-CRUSO
+# Criando o internet Gateway  
   igcurso:
     Type: AWS::EC2::InternetGateway
     DependsOn: VPCCloudTreinamentos
