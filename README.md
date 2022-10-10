@@ -15,5 +15,5 @@ Para facilitar os meus estudos durante a especialização em AWS, resolvi criar 
 
 
 ## Como executar o código:
-Para crir a sua VPC por meio do código, basta você acessar a console da AWS e por meio do CloudFormation, criar a sua Stack. Você vai importar o arquivo new-vpc.yaml e aí então é só aguardar a execução do código.
+Para crir a sua VPC por meio desse código, você deve acessear a console da AWS e por meio do CloudFormation criar a sua Stack. Você vai importar o arquivo new-vpc.yaml e aí então é só aguardar a execução do código.
 
