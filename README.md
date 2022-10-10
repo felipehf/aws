@@ -1,6 +1,6 @@
 ## Especializaçã em AWS
 
-Para facilitar os meus estudos na especialização em AWS, resolvi criar em forma de código a infraestrutura que preciso para executas os laboratórios propostos.
+Para facilitar os meus estudos durante a especialização em AWS, resolvi criar em forma de código a infraestrutura que preciso para executar os laboratórios propostos.
 
 
 
